@@ -9,6 +9,9 @@ using Xamarin.Forms;
 
 namespace AirMonitor
 {
+    /// <summary>
+    /// Aplikacja "AirMonitor" - stworzona w ramach laboratorium "Programowanie aplikacji mobilnych"
+    /// </summary>
     public partial class App : Application
     {
         public static string AirlyApiKey { get; private set; }

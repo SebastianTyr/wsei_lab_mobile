@@ -348,3 +348,11 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+
+# End of https://www.gitignore.io/api/visualstudio
+config.json
+.idea/
+*/config.json
+*/.idea/*
+airmonitor/airmonitor/airmonitor.Android/Properties/AndroidManifest.xml
+AndroidManifest.xml
