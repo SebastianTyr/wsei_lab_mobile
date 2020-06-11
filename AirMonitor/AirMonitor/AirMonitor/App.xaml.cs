@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using AirMonitor.Views;
+using AirMonitor.Models;
 using Newtonsoft.Json.Linq;
 using Xamarin.Forms;
 
@@ -19,8 +20,14 @@ namespace AirMonitor
         public static string AirlyApiMeasurementUrl { get; private set; }
         public static string AirlyApiInstallationUrl { get; private set; }
 
-        public App()
+        public static string PathDB;
+
+        private DatabaseHelper _dBhelper;
+
+        public App(string dbPath)
         {
+            PathDB = dbPath;
+
             InitializeComponent();
 
             InitializeApp();
@@ -29,6 +36,8 @@ namespace AirMonitor
         private void InitializeApp()
         {
             LoadConfig();
+
+            _dBhelper = new DatabaseHelper();
 
             MainPage = new RootTabbedPage();
         }
@@ -60,10 +69,12 @@ namespace AirMonitor
 
         protected override void OnSleep()
         {
+            _dBhelper.Dispose();
         }
 
         protected override void OnResume()
         {
+            _dBhelper.Connect();
         }
     }
 }

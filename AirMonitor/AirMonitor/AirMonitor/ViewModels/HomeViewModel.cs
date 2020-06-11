@@ -18,11 +18,13 @@ namespace AirMonitor.ViewModels
 {
     public class HomeViewModel : BaseViewModel
     {
+        private readonly DatabaseHelper _dbHelper;
         private readonly INavigation _navigation;
 
         public HomeViewModel(INavigation navigation)
         {
             _navigation = navigation;
+            _dbHelper = new DatabaseHelper();
 
             Initialize();
         }
