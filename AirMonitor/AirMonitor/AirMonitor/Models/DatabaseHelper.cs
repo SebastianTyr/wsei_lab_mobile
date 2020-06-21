@@ -38,7 +38,7 @@ namespace AirMonitor.Models
             }
         }
 
-        public void AddData(List<MeasurementEntity> _data)
+        public void AddData(List<Measurement> _data)
         {
             if (_data == null) return;
             if (_con == null) throw new Exception("Connection closed");

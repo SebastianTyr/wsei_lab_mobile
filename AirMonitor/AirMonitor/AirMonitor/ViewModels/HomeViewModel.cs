@@ -13,6 +13,7 @@ using Xamarin.Essentials;
 using System.Globalization;
 using System.Web;
 using System.Diagnostics;
+using Xamarin.Forms.Maps;
 
 namespace AirMonitor.ViewModels
 {
@@ -32,21 +33,73 @@ namespace AirMonitor.ViewModels
         private async Task Initialize()
         {
             IsBusy = true;
+            try
+            {
+                var measure = _dbHelper.Select();
+                if (measure != null && DateTime.Now.Subtract(measure.Date).TotalMinutes < 60)
+                    Items = JsonConvert.DeserializeObject<List<Measurement>>(measure.Measurement);
+                else
+                    Items = await FetchData();
 
+                Locations = Items.Select(i => new MapLocation
+                {
+                    Address = i.Installation.Address.Description,
+                    Description = "CAQI: " + i.CurrentDisplayValue,
+                    Position = new Position(i.Installation.Location.Latitude, i.Installation.Location.Longitude)
+                }).ToList();
+
+                IsBusy = false;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"Error occured {e.Message}");
+                throw e;
+            }
+        }
+
+        private async Task<List<Measurement>> FetchData()
+        {
             var location = await GetLocation();
             var installations = await GetInstallations(location, maxResults: 3);
             var data = await GetMeasurementsForInstallations(installations);
-            Items = new List<Measurement>(data);
+            var _items = new List<Measurement>(data);
+            _dbHelper.Truncate();
+            _dbHelper.AddData(_items);
 
-            IsBusy = false;
+            return _items;
         }
 
         private ICommand _goToDetailsCommand;
         public ICommand GoToDetailsCommand => _goToDetailsCommand ?? (_goToDetailsCommand = new Command<Measurement>(OnGoToDetails));
 
+        private ICommand _infoClickedCommand;
+        public ICommand InfoClickedCommand => _infoClickedCommand ?? (_infoClickedCommand = new Command<string>(OnInfoClickedCommand));
+
+        private ICommand _refreshCommand;
+        public ICommand Refresh => _refreshCommand ?? (_refreshCommand = new Command(OnRefresh));
+
         private void OnGoToDetails(Measurement item)
         {
             _navigation.PushAsync(new DetailsPage(item));
+        }
+
+        private void OnInfoClickedCommand(string address)
+        {
+            var item = Items.First(x => x.Installation.Address.Description.Equals(address));
+
+            _navigation.PushAsync(new DetailsPage(item));
+        }
+
+        private void OnRefresh()
+        {
+            IsBusy = true;
+            OnRefreshAsync();
+            IsBusy = false;
+        }
+
+        private async Task OnRefreshAsync()
+        {
+            await FetchData();
         }
 
         private List<Measurement> _items;
@@ -54,6 +107,13 @@ namespace AirMonitor.ViewModels
         {
             get => _items;
             set => SetProperty(ref _items, value);
+        }
+
+        private List<MapLocation> _locations;
+        public List<MapLocation> Locations
+        {
+            get => _locations;
+            set => SetProperty(ref _locations, value);
         }
 
         private bool _isBusy;
@@ -206,7 +266,8 @@ namespace AirMonitor.ViewModels
         {
             try
             {
-                var location = await Geolocation.GetLastKnownLocationAsync();
+                //var location = await Geolocation.GetLastKnownLocationAsync();
+                Location location = null;
 
                 if (location == null)
                 {

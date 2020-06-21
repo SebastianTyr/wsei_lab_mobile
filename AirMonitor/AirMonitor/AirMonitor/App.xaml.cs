@@ -26,7 +26,7 @@ namespace AirMonitor
 
         public App(string dbPath)
         {
-            PathDB = dbPath;
+           PathDB = dbPath;
 
             InitializeComponent();
 
